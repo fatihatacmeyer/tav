@@ -1,37 +1,34 @@
 <div class="dashboard">
-  
-  <div class="popup-overlay" *ngIf="isPopupActive">
-    <div class="popup-box">
-      <h2>DİKKAT! GÜVENLİK İHLALİ</h2>
-      <p><strong>{{ alertedDoor?.name }}</strong> kapısında yetkisiz işlem tespit edildi!</p>
-      <p>Durum: <span class="badge">{{ alertedDoor?.status | uppercase }}</span></p>
-      <button class="btn-dismiss" (click)="dismissPopup()">Uyarıyı Kapat & Ses Kes</button>
-    </div>
-  </div>
-
   <div class="header">
     <h1>Holding CCTV Geçiş Kontrol Merkezi</h1>
   </div>
 
   <div class="main-content">
-    
     <div class="section part-1">
       <h2 class="section-title">1. Bölge Paneli (Tüm Kapılar)</h2>
       <div class="grid-container">
-        <div class="floor-column" *ngFor="let floor of getFloors()">
-          <div class="floor-header">{{ floor | uppercase }}</div>
-          
-          <div class="door-item" 
-               *ngFor="let door of groupedDoors[floor]"
-               [ngClass]="{
-                 'status-closed': door.status === 'closed', 
-                 'status-open': door.status !== 'closed'
-               }"
-               title="Kapatmak için tıklayın">
-            <div class="door-name">{{ door.name }}</div>
-          </div>
+        @for (floor of getFloors(); track floor) {
+          <div class="floor-column">
+            <div class="floor-header">{{ floor | uppercase }}</div>
 
-        </div>
+            @for (door of groupedDoors[floor]; track door.id) {
+              <div
+                class="door-item"
+                [ngClass]="{
+                  'status-closed': door.status === 'closed',
+                  'status-open': door.status === 'open' || door.status === 'forced',
+                  'status-disconnected': door.status === 'disconnected',
+                }"
+              >
+                <div class="door-name">{{ door.name }}</div>
+
+                @if (door.status === 'disconnected') {
+                  <svg lucideUnplug class="icon-disconnected"></svg>
+                }
+              </div>
+            }
+          </div>
+        }
       </div>
     </div>
 
@@ -39,10 +36,18 @@
       <div class="section part-2">
         <h2 class="section-title">2. Kritik Kapılar Takibi</h2>
         <ul class="critical-list">
-          <li *ngFor="let cDoor of criticalDoors" class="critical-item">
-            <span class="indicator" [ngClass]="{'bg-green': cDoor.status === 'closed', 'bg-red': cDoor.status !== 'closed'}"></span>
-            {{ cDoor.name }} ({{ cDoor.floor }})
-          </li>
+          @for (cDoor of criticalDoors; track cDoor.id) {
+            <li class="critical-item">
+              <span
+                class="indicator"
+                [ngClass]="{
+                  'bg-green': cDoor.status === 'closed',
+                  'bg-red': cDoor.status !== 'closed',
+                }"
+              ></span>
+              {{ cDoor.name }} ({{ cDoor.floor }})
+            </li>
+          }
         </ul>
       </div>
 
@@ -58,18 +63,23 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let log of systemLogs">
-                <td>{{ log.timestamp | date:'dd.MM.yyyy HH:mm:ss' }}</td>
-                <td>{{ log.doorName }}</td>
-                <td [ngClass]="{'text-red': log.action.includes('OPEN') || log.action.includes('FORCE')}">
-                  {{ log.action }}
-                </td>
-              </tr>
+              @for (log of systemLogs; track log.id) {
+                <tr>
+                  <td>{{ log.timestamp | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+                  <td>{{ log.doorName }}</td>
+                  <td
+                    [ngClass]="{
+                      'text-red': log.action.includes('OPEN') || log.action.includes('FORCE'),
+                    }"
+                  >
+                    {{ log.action }}
+                  </td>
+                </tr>
+              }
             </tbody>
           </table>
         </div>
       </div>
     </div>
-
   </div>
 </div>
