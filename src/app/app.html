@@ -1,4 +1,4 @@
-<div class="dashboard">
+<!-- <div class="dashboard">
   <div class="header">
     <h1>Holding CCTV Geçiş Kontrol Merkezi</h1>
   </div>
@@ -69,7 +69,7 @@
                   <td>{{ log.doorName }}</td>
                   <td
                     [ngClass]="{
-                      'text-red': log.action.includes('OPEN') || log.action.includes('FORCE'),
+                      'text-red': log.action.includes('KAPI AÇILDI') || log.action.includes('KAPI ZORLANDI'),
                     }"
                   >
                     {{ log.action }}
@@ -80,6 +80,99 @@
           </table>
         </div>
       </div>
+    </div>
+  </div>
+</div> -->
+
+
+<div class="dashboard">
+  <div class="header">
+    <h1>Holding CCTV Geçiş Kontrol Merkezi</h1>
+  </div>
+
+  <div class="main-content">
+    
+    <div class="section part-1">
+      <h2 class="section-title">1. Bölge Paneli (Tüm Kapılar)</h2>
+      <div class="grid-container">
+        
+        @for (floor of floors; track floor) {
+          <div class="floor-column">
+            <div class="floor-header">{{ floor | uppercase }}</div>
+
+            @for (door of groupedDoors[floor]; track door.id) {
+              <div
+                class="door-item"
+                [ngClass]="{
+                  'status-closed': door.status === 'closed',
+                  'status-opened': door.status === 'opened',
+                  'status-leftOpen': door.status === 'leftOpen',
+                  'status-disconnected': door.status === 'disconnected'
+                }"
+              >
+                <div class="door-name">{{ door.name }}</div>
+                
+                @if (door.status === 'disconnected') {
+                  <svg lucideUnplug class="icon-disconnected"></svg>
+                }
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    </div>
+
+    <div class="sidebar">
+      
+      <div class="section part-2">
+        <h2 class="section-title">2. Kritik Kapılar Takibi</h2>
+        <ul class="critical-list">
+          
+          @for (cDoor of criticalDoors; track cDoor.id) {
+            <li class="critical-item">
+              <span
+                class="indicator"
+                [ngClass]="{
+                  'bg-green': cDoor.status === 'closed',
+                  'bg-red': cDoor.status !== 'closed'
+                }"
+              ></span>
+              {{ cDoor.name }} ({{ cDoor.floor }})
+            </li>
+          }
+
+        </ul>
+      </div>
+
+      <div class="section part-3">
+        <h2 class="section-title">3. Kapı Hareket Logları</h2>
+        <div class="log-container">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th>Tarih / Saat</th>
+                <th>Kapı</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              @for (log of systemLogs; track log.id) {
+                <tr>
+                  <td>{{ log.timestamp | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+                  <td>{{ log.doorName }}</td>
+                  <td>
+                    {{ log.action }}
+                  </td>
+                </tr>
+              }
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
     </div>
   </div>
 </div>

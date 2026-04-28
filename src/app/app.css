@@ -81,17 +81,7 @@
   align-items: center;
 }
 
-.status-closed {
-  background-color: #28a745;
-  color: white;
-}
-.status-open {
-  background-color: #dc3545;
-  color: white;
-  animation: blinker 1s linear infinite;
-}
 
-/* KISIM 2 & 3 - Sidebar */
 .sidebar {
   flex: 1;
   display: flex;
@@ -199,7 +189,7 @@
 
 @keyframes blinker {
   50% {
-    opacity: 0.5;
+    opacity: 0.4;
   }
 }
 
@@ -211,9 +201,36 @@
   color: #ffffff;
 }
 
-.status-disconnected {
+/* .status-disconnected {
   background-color: #856404; 
   color: white;
   border: 2px dashed #ffc107; 
 }
 
+.status-closed { background-color: #28a745; color: white; }
+.status-opened { background-color: #fd7e14; color: white; } 
+.status-leftOpen { background-color: #dc3545; color: white; animation: blinker 1s linear infinite; } 
+ */
+
+/* Kapı Durum Renkleri */
+.status-closed {
+  background-color: #28a745; /* Örnek Yeşil */
+  border-color: #c3e6cb;
+}
+
+.status-opened {
+  background-color: #fd7e14; /* Örnek Kırmızı */
+  border-color: #f5c6cb;
+}
+
+.status-leftOpen {
+  background-color: #dc3545; /* Kırmızı - Alarm */
+  border-color: #f5c6cb;
+  animation: blinker 1s linear infinite;
+}
+
+.status-disconnected {
+  background-color: #6c757d; /* Gri - Bağlantı Yok */
+  border-color: #d6d8db;
+  opacity: 0.7;
+}
