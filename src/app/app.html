@@ -1,22 +1,43 @@
-<!-- <div class="dashboard">
+<div class="dashboard" [class.light-mode]="isLightMode">
   <div class="header">
-    <h1>Holding CCTV Geçiş Kontrol Merkezi</h1>
+    <img src="logo.png" alt="Logo" class="dashboard-logo" />
+    <h1>Kapı Kontrol Paneli</h1>
+
+    <button class="theme-toggle-btn" (click)="toggleTheme()">
+      {{ isLightMode ? '🌙 Koyu Mod' : '☀️ Açık Mod' }}
+    </button>
   </div>
 
   <div class="main-content">
     <div class="section part-1">
+      <div class="filter-container">
+        <input
+          type="text"
+          class="filter-input"
+          placeholder="Kapı Ara..."
+          [(ngModel)]="searchTerm"
+          (input)="onFilterChange()"
+        />
+        <select class="filter-input" [(ngModel)]="groupFilter" (change)="onFilterChange()">
+          <option value="">Tüm Gruplar</option>
+          @for (group of availableGroups; track group) {
+            <option [value]="group">{{ group }}</option>
+          }
+        </select>
+      </div>
       <h2 class="section-title">1. Bölge Paneli (Tüm Kapılar)</h2>
       <div class="grid-container">
-        @for (floor of getFloors(); track floor) {
+        @for (floor of floors; track floor) {
           <div class="floor-column">
             <div class="floor-header">{{ floor | uppercase }}</div>
 
-            @for (door of groupedDoors[floor]; track door.id) {
+            @for (door of groupedDoors[floor]; track door.uniqueKey) {
               <div
                 class="door-item"
                 [ngClass]="{
                   'status-closed': door.status === 'closed',
-                  'status-open': door.status === 'open' || door.status === 'forced',
+                  'status-opened': door.status === 'opened',
+                  'status-leftOpen': door.status === 'leftOpen',
                   'status-disconnected': door.status === 'disconnected',
                 }"
               >
@@ -34,117 +55,39 @@
 
     <div class="sidebar">
       <div class="section part-2">
-        <h2 class="section-title">2. Kritik Kapılar Takibi</h2>
-        <ul class="critical-list">
-          @for (cDoor of criticalDoors; track cDoor.id) {
-            <li class="critical-item">
-              <span
-                class="indicator"
-                [ngClass]="{
-                  'bg-green': cDoor.status === 'closed',
-                  'bg-red': cDoor.status !== 'closed',
-                }"
-              ></span>
-              {{ cDoor.name }} ({{ cDoor.floor }})
-            </li>
-          }
-        </ul>
-      </div>
+        <h2 class="section-title">2. {{ sidebarTitle }}</h2>
 
-      <div class="section part-3">
-        <h2 class="section-title">3. Kapı Hareket Logları</h2>
-        <div class="log-container">
-          <table class="log-table">
-            <thead>
-              <tr>
-                <th>Tarih / Saat</th>
-                <th>Kapı</th>
-                <th>İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (log of systemLogs; track log.id) {
-                <tr>
-                  <td>{{ log.timestamp | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
-                  <td>{{ log.doorName }}</td>
-                  <td
-                    [ngClass]="{
-                      'text-red': log.action.includes('KAPI AÇILDI') || log.action.includes('KAPI ZORLANDI'),
-                    }"
-                  >
-                    {{ log.action }}
-                  </td>
-                </tr>
+        <div class="critical-grid">
+          @for (cDoor of criticalDoors; track cDoor.uniqueKey) {
+            <div
+              class="critical-item"
+              [ngClass]="{
+                'status-closed': cDoor.status === 'closed',
+                'status-opened': cDoor.status === 'opened',
+                'status-leftOpen': cDoor.status === 'leftOpen',
+                'status-disconnected': cDoor.status === 'disconnected',
+              }"
+            >
+              <div class="door-name">{{ cDoor.name }}</div>
+
+              @if (cDoor.status === 'disconnected') {
+                <svg lucideUnplug class="icon-disconnected"></svg>
               }
-            </tbody>
-          </table>
+            </div>
+          }
         </div>
       </div>
-    </div>
-  </div>
-</div> -->
-
-
-<div class="dashboard">
-  <div class="header">
-    <h1>Holding CCTV Geçiş Kontrol Merkezi</h1>
-  </div>
-
-  <div class="main-content">
-    
-    <div class="section part-1">
-      <h2 class="section-title">1. Bölge Paneli (Tüm Kapılar)</h2>
-      <div class="grid-container">
-        
-        @for (floor of floors; track floor) {
-          <div class="floor-column">
-            <div class="floor-header">{{ floor | uppercase }}</div>
-
-            @for (door of groupedDoors[floor]; track door.id) {
-              <div
-                class="door-item"
-                [ngClass]="{
-                  'status-closed': door.status === 'closed',
-                  'status-opened': door.status === 'opened',
-                  'status-leftOpen': door.status === 'leftOpen',
-                  'status-disconnected': door.status === 'disconnected'
-                }"
-              >
-                <div class="door-name">{{ door.name }}</div>
-                
-                @if (door.status === 'disconnected') {
-                  <svg lucideUnplug class="icon-disconnected"></svg>
-                }
-              </div>
-            }
+      <div class="notification-container">
+        @for (alert of activeNotifications; track alert.id) {
+          <div class="notification-toast">
+            <div class="toast-icon">⚠️</div>
+            <div class="toast-content">
+              <div class="toast-title">KAPI AÇIK KALDI!</div>
+              <div class="toast-door">{{ alert.doorName }}</div>
+            </div>
           </div>
         }
-
       </div>
-    </div>
-
-    <div class="sidebar">
-      
-      <div class="section part-2">
-        <h2 class="section-title">2. Kritik Kapılar Takibi</h2>
-        <ul class="critical-list">
-          
-          @for (cDoor of criticalDoors; track cDoor.id) {
-            <li class="critical-item">
-              <span
-                class="indicator"
-                [ngClass]="{
-                  'bg-green': cDoor.status === 'closed',
-                  'bg-red': cDoor.status !== 'closed'
-                }"
-              ></span>
-              {{ cDoor.name }} ({{ cDoor.floor }})
-            </li>
-          }
-
-        </ul>
-      </div>
-
       <div class="section part-3">
         <h2 class="section-title">3. Kapı Hareket Logları</h2>
         <div class="log-container">
@@ -157,22 +100,112 @@
               </tr>
             </thead>
             <tbody>
-              
               @for (log of systemLogs; track log.id) {
                 <tr>
                   <td>{{ log.timestamp | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
                   <td>{{ log.doorName }}</td>
                   <td>
-                    {{ log.action }}
+                    <div class="history-status">
+                      @if (log.status !== undefined) {
+                        <span
+                          class="indicator"
+                          [ngClass]="getHistoryStatusClass(log.status)"
+                        ></span>
+                      }
+                      {{ log.action }}
+                    </div>
                   </td>
                 </tr>
               }
-
             </tbody>
           </table>
         </div>
+        <button class="btn-history" (click)="openHistoryModal()">GEÇMİŞİ GÖSTER</button>
       </div>
-      
     </div>
   </div>
+
+  @if (isHistoryModalOpen) {
+    <div class="popup-overlay">
+      <div class="popup-box">
+        <div class="history-header">
+          <h2>Geçmiş Durum Kayıtları</h2>
+          <button class="btn-close" (click)="closeHistoryModal()">&times;</button>
+        </div>
+
+        <div class="filter-container">
+          <input
+            type="text"
+            class="filter-input"
+            placeholder="Kapı Adı Ara..."
+            [(ngModel)]="historySearchTerm"
+          />
+          <select class="filter-input" [(ngModel)]="historyGroupFilter">
+            <option value="">Tüm Gruplar</option>
+            @for (group of availableHistoryGroups; track group) {
+              <option [value]="group">{{ group }}</option>
+            }
+          </select>
+          <label class="filter-label">Başlangıç:</label>
+          <input
+            type="date"
+            class="filter-input date-input"
+            [(ngModel)]="startDate"
+            (change)="fetchHistory(1)"
+          />
+          <label class="filter-label">Bitiş:</label>
+          <input
+            type="date"
+            class="filter-input date-input"
+            [(ngModel)]="endDate"
+            (change)="fetchHistory(1)"
+          />
+          <button class="btn-page" (click)="fetchHistory(1)">ARA</button>
+        </div>
+
+        <div class="log-container">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th>Tarih / Saat</th>
+                <th>Kapı</th>
+                <th>Grup</th>
+                <th>Durum</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (hLog of filteredHistoryLogs; track hLog.LogID) {
+                <tr>
+                  <td>{{ hLog.SonGuncelleme | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+                  <td>{{ hLog.TerminalAdi }}</td>
+                  <td>{{ hLog.GrupAdi }}</td>
+                  <td>
+                    <div class="history-status">
+                      <span class="indicator" [ngClass]="getHistoryStatusClass(hLog.Durum)"></span>
+                      {{ getHistoryStatusText(hLog.Durum) }}
+                    </div>
+                  </td>
+                </tr>
+              }
+              @if (historyLogs.length === 0) {
+                <tr>
+                  <td colspan="4">Kayıt bulunamadı.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination">
+          <button class="btn-page" [disabled]="currentPage === 1" (click)="prevPage()">
+            Önceki
+          </button>
+          <span>Sayfa {{ currentPage }} / {{ totalPages }}</span>
+          <button class="btn-page" [disabled]="currentPage === totalPages" (click)="nextPage()">
+            Sonraki
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

@@ -2,5 +2,6 @@
   "apiUrl": "http://10.20.28.119:8061",
   "pollIntervalSeconds": 1,
   "user": "tav_kapi",
-  "password": "tav_kapi_sifre"
+  "password": "tav_kapi_sifre",
+  "pageSize": 8
 }

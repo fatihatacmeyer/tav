@@ -8,6 +8,7 @@ export interface AppConfig {
   pollIntervalSeconds: number;
   user: string;
   password: string;
+  pageSize: number;
 }
 
 @Injectable({
@@ -41,7 +42,7 @@ export class DoorService {
 
     const token = tokenResponse.token || tokenResponse;
 
-    //console.log('Fetching doors from:', `${config.apiUrl}/api/Kapi/getDurum`);
+    console.log('Fetching doors from:', `${config.apiUrl}/api/Kapi/getDurum`);
     const headers = new HttpHeaders({
       'X-One-Time-Token': token
     });
@@ -49,9 +50,38 @@ export class DoorService {
     const doorsData = await firstValueFrom(
       this.http.get<ApiDoor[]>(`${config.apiUrl}/api/Kapi/getDurum`, { headers })
     );
-    //console.log('Doors data received:', doorsData);
+    console.log('Doors data received:', doorsData);
 
     return doorsData;
   }
 
+  async fetchHistoryFromApi(pageNo: number, pageSize: number, startDate?: string, endDate?: string): Promise<any> {
+    const config = await this.loadConfig();
+    
+    const tokenResponse: any = await firstValueFrom(
+      this.http.post(`${config.apiUrl}/api/Auth/Token`, {
+        user: config.user,
+        password: config.password
+      })
+    );
+
+    const token = tokenResponse.token || tokenResponse;
+
+    const headers = new HttpHeaders({
+      'X-One-Time-Token': token
+    });
+
+    let url = `${config.apiUrl}/api/Kapi/getGecmisDurum?sayfaNo=${pageNo}&KayitAdet=${pageSize}`;
+    
+    if (startDate) {
+      url += `&baslangic=${encodeURIComponent(startDate)}`;
+    }
+    if (endDate) {
+      url += `&bitis=${encodeURIComponent(endDate)}`;
+    }
+    
+    return firstValueFrom(
+      this.http.get<any>(url, { headers })
+    );
+  }
 }
