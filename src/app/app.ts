@@ -301,7 +301,7 @@ export class App implements OnInit {
         const statusNum = Number(apiItem.Durum);
         this.addLog(apiItem.TerminalAdi, actionText, statusNum);
 
-        if (currentStatus === 'leftOpen' || currentStatus === 'forced') {
+        if ((currentStatus === 'leftOpen' || currentStatus === 'forced') && amac === 30) {
           // Eğer bu kapı (TerminalID) için bu döngüde henüz bildirim çıkarmadıysak çıkar
           if (!triggeredDoorIds.has(apiItem.TerminalID)) {
             this.showDoorAlert(apiItem.TerminalAdi, currentStatus);
