@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideUnplug, LucideTriangleAlert } from '@lucide/angular';
 import { DoorService } from './core/services/door';
@@ -41,7 +41,7 @@ export interface SystemLog {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, LucideUnplug, LucideTriangleAlert, FormsModule],
+  imports: [CommonModule, LucideUnplug, LucideTriangleAlert, FormsModule, NgOptimizedImage],
   templateUrl: './app.html',
   styleUrls: ['./app.css'],
 })
@@ -537,7 +537,7 @@ export class App implements OnInit {
 
   addLog(doorName: string, action: string, status?: number): void {
     const newLog: SystemLog = {
-      id: Date.now(),
+      id: Date.now() + Math.random(),
       doorName: doorName,
       action: action,
       status: status,
