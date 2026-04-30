@@ -259,8 +259,8 @@ body {
 }
 
 .status-opened {
-  background-color: #fd7e14;
-  border-color: #f5c6cb;
+  background-color: #00a2f5;
+  border-color: #c6def5;
 }
 
 .status-leftOpen {
@@ -276,6 +276,17 @@ body {
   opacity: 0.8;
 }
 
+.status-forced {
+  background-color: #8b0000;
+  border-color: #f5c6cb;
+  animation: fast-blinker 0.5s linear infinite;
+  color: white;
+}
+
+@keyframes fast-blinker {
+  50% { opacity: 0.3; }
+}
+
 .indicator {
   width: 8px;
   height: 8px;
@@ -285,11 +296,20 @@ body {
 
 .bg-green { background-color: #28a745; }
 .bg-red { background-color: #dc3545; }
+.bg-blue { background-color: #00a2f5; }
 .bg-orange { background-color: #fd7e14; }
-.bg-gray { background-color: #6c757d; }
+.bg-gray { background-color: #6c757d; } 
 .text-red { color: #dc3545; font-weight: bold; }
 
 .icon-disconnected {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.icon-forced {
   width: 14px;
   height: 14px;
   margin-left: auto;
@@ -550,5 +570,25 @@ body {
   to {
     transform: translateX(0);
     opacity: 1;
+  }
+}
+
+.notification-toast.toast-forced {
+  background-color: #8b0000; /* Daha koyu ve acil bir kırmızı */
+  border-left: 6px solid #ff0000; /* Parlak kırmızı sol çizgi */
+  /* Slide in animasyonuna ek olarak etrafa kırmızı ışık saçma (pulse) animasyonu ekliyoruz */
+  animation: slideInRight 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards, pulse-danger 1s infinite;
+}
+
+/* Zorlanma Bildirimi İçin Dikkat Çekici Işık Saçma Animasyonu */
+@keyframes pulse-danger {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
   }
 }

@@ -39,12 +39,16 @@
                   'status-opened': door.status === 'opened',
                   'status-leftOpen': door.status === 'leftOpen',
                   'status-disconnected': door.status === 'disconnected',
+                  'status-forced': door.status === 'forced',
                 }"
               >
                 <div class="door-name">{{ door.name }}</div>
 
                 @if (door.status === 'disconnected') {
                   <svg lucideUnplug class="icon-disconnected"></svg>
+                }
+                @if (door.status === 'forced') {
+                  <svg lucideTriangleAlert class="icon-forced"></svg>
                 }
               </div>
             }
@@ -66,6 +70,7 @@
                 'status-opened': cDoor.status === 'opened',
                 'status-leftOpen': cDoor.status === 'leftOpen',
                 'status-disconnected': cDoor.status === 'disconnected',
+                'status-forced': cDoor.status === 'forced',
               }"
             >
               <div class="door-name">{{ cDoor.name }}</div>
@@ -73,16 +78,28 @@
               @if (cDoor.status === 'disconnected') {
                 <svg lucideUnplug class="icon-disconnected"></svg>
               }
+              @if (cDoor.status === 'forced') {
+                <svg lucideTriangleAlert class="icon-forced"></svg>
+              }
             </div>
           }
         </div>
       </div>
       <div class="notification-container">
         @for (alert of activeNotifications; track alert.id) {
-          <div class="notification-toast">
-            <div class="toast-icon">⚠️</div>
+          <div
+            class="notification-toast"
+            [ngClass]="{ 'toast-forced': alert.alertType === 'forced' }"
+          >
+            <!-- Zorlanma durumunda siren ikonu, açık kalmada uyarı ikonu -->
+            <div class="toast-icon">
+              {{ alert.alertType === 'forced' ? '🚨' : '⚠️' }}
+            </div>
             <div class="toast-content">
-              <div class="toast-title">KAPI AÇIK KALDI!</div>
+              <!-- Başlığı duruma göre değiştiriyoruz -->
+              <div class="toast-title">
+                {{ alert.alertType === 'forced' ? 'KAPI ZORLA AÇILDI!' : 'KAPI AÇIK KALDI!' }}
+              </div>
               <div class="toast-door">{{ alert.doorName }}</div>
             </div>
           </div>
