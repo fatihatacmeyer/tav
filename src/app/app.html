@@ -3,6 +3,12 @@
     <img ngSrc="logo.png" alt="Logo" class="dashboard-logo" width="113" height="35" priority />
     <h1>Kapı Kontrol Paneli</h1>
 
+    <div class="header-actions">
+      <button class="sound-toggle-btn" [class.is-muted]="!isSoundEnabled" (click)="toggleSound()">
+        {{ isSoundEnabled ? '🔊 Ses Açık' : '🔇 Ses Kapalı' }}
+      </button>
+    </div>
+
     <button class="theme-toggle-btn" (click)="toggleTheme()">
       {{ isLightMode ? '🌙 Koyu Mod' : '☀️ Açık Mod' }}
     </button>
@@ -100,10 +106,9 @@
                   'status-forced': door.status === 'forced',
                 }"
               >
-                <!-- SADECE BURASI DEĞİŞTİ: Metni boşluklardan ayırıp yan yana dizecek yapı -->
                 <div class="door-name">
-                  @for (part of door.displayNameParts; track $index) {
-                    <span class="name-part">{{ part }}</span>
+                  @for (line of door.displayNameParts; track $index) {
+                    <div class="name-line">{{ line }}</div>
                   }
                 </div>
 
@@ -151,7 +156,7 @@
         <h2 class="section-title">2. {{ sidebarTitle }}</h2>
 
         <div class="critical-grid">
-          @for (cDoor of criticalDoors; track cDoor.uniqueKey) {
+          <!-- @for (cDoor of criticalDoors; track cDoor.uniqueKey) {
             <div
               class="critical-item"
               [title]="cDoor.name"
@@ -164,6 +169,32 @@
               }"
             >
               <div class="door-name">{{ cDoor.name }}</div>
+
+              @if (cDoor.status === 'disconnected') {
+                <svg lucideUnplug class="icon-disconnected"></svg>
+              }
+              @if (cDoor.status === 'forced') {
+                <svg lucideTriangleAlert class="icon-forced"></svg>
+              }
+            </div>
+          } -->
+          @for (cDoor of criticalDoors; track cDoor.uniqueKey) {
+            <div
+              class="critical-item"
+              [title]="cDoor.name"
+              [ngClass]="{
+                'status-closed': cDoor.status === 'closed',
+                'status-opened': cDoor.status === 'opened',
+                'status-leftOpen': cDoor.status === 'leftOpen',
+                'status-disconnected': cDoor.status === 'disconnected',
+                'status-forced': cDoor.status === 'forced',
+              }"
+            >
+              <div class="critical-name">
+                @for (line of cDoor.criticalNameLines; track $index) {
+                  <div class="critical-name-line">{{ line }}</div>
+                }
+              </div>
 
               @if (cDoor.status === 'disconnected') {
                 <svg lucideUnplug class="icon-disconnected"></svg>

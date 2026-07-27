@@ -4,5 +4,5 @@
   "user": "tav_kapi",
   "password": "tav_kapi_sifre",
   "pageSize": 8,
-  "useDummyData": false
+  "useDummyData": true
 }

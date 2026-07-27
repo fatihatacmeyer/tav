@@ -24,6 +24,7 @@ export interface Door {
   uniqueKey: string;
   name: string;
   displayNameParts: string[];
+  criticalNameLines: string[];
   floor: string;
   status: 'closed' | 'opened' | 'leftOpen' | 'disconnected' | 'forced';
   isCritical: boolean;
@@ -81,11 +82,20 @@ export class App implements OnInit {
   startDate: string = '';
   endDate: string = '';
 
+  isSoundEnabled: boolean = false;
+
+  private alertAudio: HTMLAudioElement = new Audio('alert.mp3');
+
   async ngOnInit(): Promise<void> {
     if (typeof window !== 'undefined' && localStorage) {
       const savedTheme = localStorage.getItem('themePreference');
       if (savedTheme === 'light') {
         this.isLightMode = true;
+      }
+
+      const savedSound = localStorage.getItem('soundPreference');
+      if (savedSound === 'off') {
+        this.isSoundEnabled = false; // Kullanıcı bilinçli kapatmış, öyle kalsın
       }
     }
     const config = await this.doorService.loadConfig();
@@ -93,7 +103,42 @@ export class App implements OnInit {
 
     this.initDates();
     this.startLiveSystem();
-    this.fetchHistory(1, 5, true); // İlk açılışta ana ekran için sadece 5 kayıt çekelim
+    this.fetchHistory(1, 5, true);
+    //this.setupAudioUnlock();
+  }
+
+  private setupAudioUnlock(): void {
+    const unlock = () => {
+      this.alertAudio
+        .play()
+        .then(() => {
+          this.alertAudio.pause();
+          this.alertAudio.currentTime = 0;
+        })
+        .catch(() => {});
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('keydown', unlock);
+    };
+    document.addEventListener('click', unlock);
+    document.addEventListener('keydown', unlock);
+  }
+
+  toggleSound(): void {
+    this.isSoundEnabled = !this.isSoundEnabled;
+
+    if (typeof window !== 'undefined' && localStorage) {
+      localStorage.setItem('soundPreference', this.isSoundEnabled ? 'on' : 'off');
+    }
+
+    if (this.isSoundEnabled) {
+      this.alertAudio
+        .play()
+        .then(() => {
+          this.alertAudio.pause();
+          this.alertAudio.currentTime = 0;
+        })
+        .catch(() => {});
+    }
   }
 
   toggleTheme(): void {
@@ -104,28 +149,63 @@ export class App implements OnInit {
       localStorage.setItem('themePreference', this.isLightMode ? 'light' : 'dark');
     }
   }
-  showDoorAlert(doorName: string, alertType: 'leftOpen' | 'forced') {
-    const audio = new Audio('alert.mp3');
-    audio.play().catch((e) => console.warn('Ses çalınamadı (Tarayıcı engeli olabilir):', e));
+  // showDoorAlert(doorName: string, alertType: 'leftOpen' | 'forced') {
+  //   const audio = new Audio('alert.mp3');
+  //   audio.play().catch((e) => console.warn('Ses çalınamadı (Tarayıcı engeli olabilir):', e));
 
+  //   const newAlert: AlertNotification = {
+  //     id: Date.now() + Math.random(),
+  //     doorName: doorName,
+  //     alertType: alertType,
+  //   };
+
+  //   // 3. En üste ekle
+  //   this.activeNotifications.unshift(newAlert);
+
+  //   // 4. Eğer 4'ten fazla olduysa en sondakini (en eskiyi) sil
+  //   if (this.activeNotifications.length > 4) {
+  //     this.activeNotifications.pop();
+  //   }
+
+  //   // 5. 3 Saniye sonra bu bildirimi diziden çıkar
+  //   setTimeout(() => {
+  //     this.activeNotifications = this.activeNotifications.filter((n) => n.id !== newAlert.id);
+  //     this.cdr.detectChanges(); // Arayüzü güncelle
+  //   }, 3000);
+  // }
+
+  private simulateDoorEvents(doors: ApiDoor[]): ApiDoor[] {
+    return doors.map((d) => {
+      const copy = { ...d };
+      // Normal/kritik kapılarda %8 ihtimalle rastgele bir alarm durumu üret
+      if (
+        (d.Amac === 30 || d.Amac === 26 || d.Amac === 31 || d.Amac === 27) &&
+        Math.random() < 0.08
+      ) {
+        copy.Durum = Math.random() < 0.5 ? 2 : 3; // 2: açık kaldı, 3: zorlandı
+      } else {
+        copy.Durum = 0; // diğerleri kapalı kalsın
+      }
+      return copy;
+    });
+  }
+
+  showDoorAlert(doorName: string, alertType: 'leftOpen' | 'forced') {
     const newAlert: AlertNotification = {
       id: Date.now() + Math.random(),
       doorName: doorName,
       alertType: alertType,
     };
 
-    // 3. En üste ekle
     this.activeNotifications.unshift(newAlert);
 
-    // 4. Eğer 4'ten fazla olduysa en sondakini (en eskiyi) sil
     if (this.activeNotifications.length > 4) {
       this.activeNotifications.pop();
     }
 
-    // 5. 3 Saniye sonra bu bildirimi diziden çıkar
     setTimeout(() => {
       this.activeNotifications = this.activeNotifications.filter((n) => n.id !== newAlert.id);
-      this.cdr.detectChanges(); // Arayüzü güncelle
+      this.cdr.detectChanges();
     }, 3000);
   }
   initDates() {
@@ -177,7 +257,8 @@ export class App implements OnInit {
       const config = await this.doorService.loadConfig();
       if (config.useDummyData) {
         this.addLog('Sistem', 'Dummy veri modu aktif, demo veri yükleniyor...');
-        this.mapAndOrganizeData(DUMMY_DOORS);
+        const simulatedDoors = this.simulateDoorEvents(DUMMY_DOORS); // DEĞİŞTİ
+        this.mapAndOrganizeData(simulatedDoors);
         this.cdr.detectChanges();
         return;
       }
@@ -271,6 +352,109 @@ export class App implements OnInit {
   //   this.availableGroups = [...new Set(this.doors.map((d) => d.floor))].sort();
   // }
 
+  private splitNameIntoLines(name: string, maxLines: number = 3): string[] {
+    if (!name) return [''];
+    const trimmed = name.trim();
+
+    if (maxLines <= 1 || trimmed.length <= 6) return [trimmed];
+
+    const separators = [' ', '-'];
+
+    const findNearestSeparator = (text: string, targetIndex: number): number => {
+      for (let offset = 0; offset < text.length / 2; offset++) {
+        const left = targetIndex - offset;
+        const right = targetIndex + offset;
+        if (left >= 0 && separators.includes(text[left])) return left;
+        if (right < text.length && separators.includes(text[right])) return right;
+      }
+      return -1;
+    };
+
+    const splitAt = (text: string, index: number, breakChar: string): [string, string] => {
+      if (breakChar === '-') {
+        return [text.slice(0, index + 1).trim(), text.slice(index + 1).trim()];
+      }
+      return [text.slice(0, index).trim(), text.slice(index).trim()];
+    };
+
+    const targetIndex = Math.floor(trimmed.length / maxLines);
+    const splitIndex = findNearestSeparator(trimmed, targetIndex);
+
+    let first: string;
+    let rest: string;
+
+    if (splitIndex === -1) {
+      first = trimmed.slice(0, targetIndex);
+      rest = trimmed.slice(targetIndex);
+    } else {
+      [first, rest] = splitAt(trimmed, splitIndex, trimmed[splitIndex]);
+    }
+
+    if (!rest) return [first];
+
+    // Kalan kısmı bir azalan maxLines ile tekrar böl (recursive)
+    return [first, ...this.splitNameIntoLines(rest, maxLines - 1)];
+  }
+
+  private splitNameForCritical(name: string): string[] {
+    if (!name) return [''];
+    const trimmed = name.trim();
+    const separators = [' ', '-'];
+
+    if (trimmed.length <= 8) return [trimmed];
+
+    // Belirtilen noktaya en yakın ayracı bulan yardımcı fonksiyon
+    const findNearestSeparator = (text: string, targetIndex: number): number => {
+      for (let offset = 0; offset < text.length / 2; offset++) {
+        const left = targetIndex - offset;
+        const right = targetIndex + offset;
+        if (left >= 0 && separators.includes(text[left])) return left;
+        if (right < text.length && separators.includes(text[right])) return right;
+      }
+      return -1;
+    };
+
+    const splitAt = (text: string, index: number, breakChar: string): [string, string] => {
+      if (breakChar === '-') {
+        return [text.slice(0, index + 1).trim(), text.slice(index + 1).trim()];
+      }
+      return [text.slice(0, index).trim(), text.slice(index).trim()];
+    };
+
+    // İlk kesim: metnin 1/3 noktasına en yakın ayraç
+    const firstTarget = Math.floor(trimmed.length / 3);
+    const firstSplitIndex = findNearestSeparator(trimmed, firstTarget);
+
+    let line1: string;
+    let rest: string;
+
+    if (firstSplitIndex === -1) {
+      // Ayraç yoksa sert böl
+      line1 = trimmed.slice(0, firstTarget);
+      rest = trimmed.slice(firstTarget);
+    } else {
+      [line1, rest] = splitAt(trimmed, firstSplitIndex, trimmed[firstSplitIndex]);
+    }
+
+    if (!rest) return [line1];
+
+    // İkinci kesim: kalan metnin ortasına en yakın ayraç
+    const secondTarget = Math.floor(rest.length / 2);
+    const secondSplitIndex = findNearestSeparator(rest, secondTarget);
+
+    let line2: string;
+    let line3: string;
+
+    if (secondSplitIndex === -1) {
+      line2 = rest.slice(0, secondTarget);
+      line3 = rest.slice(secondTarget);
+    } else {
+      [line2, line3] = splitAt(rest, secondSplitIndex, rest[secondSplitIndex]);
+    }
+
+    return line3 ? [line1, line2, line3] : [line1, line2];
+  }
+
   mapAndOrganizeData(apiPayload: ApiDoor[]): void {
     if (!apiPayload || !Array.isArray(apiPayload)) {
       console.warn('API payload geçerli bir dizi değil:', apiPayload);
@@ -284,9 +468,9 @@ export class App implements OnInit {
     const titleEntry = apiPayload.find(
       (item) => Number(item.Amac) === 31 || Number(item.Amac) === 27,
     );
-    if (titleEntry) {
-      this.sidebarTitle = titleEntry.GrupAdi;
-    }
+    // if (titleEntry) {
+    //   this.sidebarTitle = titleEntry.GrupAdi;
+    // }
 
     // YENİ: Sesin birden fazla çalmasını ve aynı kapı için birden fazla toast çıkmasını engelleyen yapılar
     let shouldPlayAlertSound = false;
@@ -337,7 +521,8 @@ export class App implements OnInit {
         id: apiItem.TerminalID,
         uniqueKey: uniqueKey,
         name: apiItem.TerminalAdi,
-        displayNameParts: apiItem.TerminalAdi.split(' '),
+        displayNameParts: this.splitNameIntoLines(apiItem.TerminalAdi, 3), // section1
+        criticalNameLines: this.splitNameIntoLines(apiItem.TerminalAdi, 3),
         floor: apiItem.GrupAdi || 'DİĞER',
         status: currentStatus,
         isCritical: amac === 31 || amac === 27,
@@ -354,9 +539,11 @@ export class App implements OnInit {
     });
 
     // YENİ: Döngü tamamen bittikten sonra, eğer en az bir kapı alarm verdiyse sesi SADECE 1 KERE çal.
-    if (shouldPlayAlertSound) {
-      const audio = new Audio('alert.mp3');
-      audio.play().catch((e) => console.warn('Ses çalınamadı (Tarayıcı engeli olabilir):', e));
+    if (shouldPlayAlertSound && this.isSoundEnabled) {
+      this.alertAudio.currentTime = 0;
+      this.alertAudio
+        .play()
+        .catch((e) => console.warn('Ses çalınamadı (Tarayıcı engeli olabilir):', e));
     }
 
     this.organizeData();

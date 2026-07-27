@@ -101,6 +101,12 @@ body {
   padding-bottom: 0;
 }
 
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
 .theme-toggle-btn {
   margin-left: auto;
   padding: 6px 12px;
@@ -119,6 +125,30 @@ body {
 
 .theme-toggle-btn:hover {
   background-color: var(--bg-header);
+}
+.sound-toggle-btn {
+  padding: 6px 12px;
+  background-color: var(--bg-panel);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.sound-toggle-btn:hover,
+.theme-toggle-btn:hover {
+  background-color: var(--bg-header);
+}
+
+.sound-toggle-btn.is-muted {
+  border-color: #dc3545;
+  color: #dc3545;
 }
 
 /* ==========================================================================
@@ -162,14 +192,17 @@ body {
   gap: 2px;
   overflow-x: auto;
   flex: 1;
+  align-items: flex-start;
 }
 
 .floor-column {
-  flex: 0 0 auto;
-  min-width: auto; /* 'none' yerine mantıklı bir minimum sınır */
-  max-width: 170px; /* İŞTE BURASI: Kutu 170px'e çarpınca sığmayan span'i alta atacak */
+  /* flex: 0 0 auto; */
+  flex: 1 1 0;
+  min-width: auto;
+  max-width: 130px;   /* 170px'ten küçültüldü, taşmayı azaltır */
   border-right: 1px solid var(--border-color);
   padding-right: 2px;
+  overflow-y: auto;
 }
 
 .floor-column:last-child {
@@ -187,18 +220,26 @@ body {
   border-radius: 4px;
 }
 
+.floor-column::-webkit-scrollbar {
+  width: 4px;
+}
+.floor-column::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
 .door-item {
   padding: 4px 6px;
   margin-bottom: 3px;
-  font-size: 10px;
+  font-size: 9.5px;      /* 3 satıra sığması için biraz küçültüldü */
   font-weight: 600;
   border: 1px solid var(--border-dark);
   cursor: pointer;
   display: flex;
   align-items: center;
-  min-height: 24px;
+  min-height: 36px;      /* 3 satır + padding'e göre büyütüldü */
   overflow: hidden;
-  color: #ffffff; /* Durum renkleri nedeniyle her zaman beyaz okunur */
+  color: #ffffff;
   border-radius: 4px;
 }
 
@@ -212,14 +253,17 @@ body {
 .door-name {
   flex: 1;
   display: flex;
-  flex-wrap: wrap;       
-  column-gap: 4px;       
-  row-gap: 2px;          
-  padding-right: 0px;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  gap: 1px;
 }
 
-.name-part {
-  white-space: nowrap;   /* Asla tireden kırılmaz, sadece span'ler arası boşluktan alt satıra geçer */
+.name-line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
 }
 
 /* ==========================================================================
@@ -255,19 +299,24 @@ body {
 .critical-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 4px;
+  gap: 3px;
 }
 
 .critical-item {
-  padding: 4px 6px;
-  font-size: 11px;
+  /* padding: 4px 6px;
+  font-size: 10px;
+  font-weight: 600; */
+  padding: 3px 5px;
+  min-height: 38px;
+  font-size: 10px;
   font-weight: 600;
+  /* min-height: 28px; */
   border: 1px solid var(--border-dark);
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  min-height: 34px;
+  min-height: 28px;
   overflow: hidden;
   box-shadow: 0 2px 4px var(--shadow-color);
   transition: transform 0.2s ease;
@@ -276,6 +325,23 @@ body {
 
 .critical-item:hover {
   transform: translateY(-2px);
+}
+
+.critical-name {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  gap: 1px;
+}
+
+.critical-name-line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
+  font-size: 9.5px;   /* 3 satıra sığması için biraz küçültüldü */
 }
 
 /* ==========================================================================
