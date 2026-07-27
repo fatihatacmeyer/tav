@@ -126,7 +126,7 @@ body {
    ========================================================================== */
 .main-content {
   display: flex;
-  gap: 20px;
+  gap: 2px;
   height: calc(100vh - 80px);
 }
 
@@ -152,12 +152,12 @@ body {
    5. BÖLÜM 1 - TÜM KAPILAR (GRID)
    ========================================================================== */
 .part-1 {
-  flex: 2;
+  flex: 1;
 }
 
 .grid-container {
   display: flex;
-  gap: 6px;
+  gap: 2px;
   overflow-x: auto;
 }
 
@@ -210,18 +210,18 @@ body {
    6. BÖLÜM 2 & 3 - YAN PANEL VE KRİTİK KAPILAR
    ========================================================================== */
 .sidebar {
-  flex: 1;
+  flex: 0 0 550px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 2px;
 }
 
 .part-2 {
-  flex: 2;
+  flex: 1;
 }
 
 .part-3 {
-  flex: 1;
+  flex: 0 0 320px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -239,7 +239,7 @@ body {
 .critical-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 8px;
+  gap: 4px;
 }
 
 .critical-item {
