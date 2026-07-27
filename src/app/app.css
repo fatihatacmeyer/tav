@@ -134,7 +134,7 @@ body {
   background-color: var(--bg-panel);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 10px;
+  padding: 5px;
   overflow-y: auto;
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
@@ -153,20 +153,23 @@ body {
    ========================================================================== */
 .part-1 {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .grid-container {
   display: flex;
   gap: 2px;
   overflow-x: auto;
+  flex: 1;
 }
 
 .floor-column {
-  flex: 1;
-  min-width: 100px;
-  max-width: 200px;
+  flex: 0 0 auto;
+  min-width: auto; /* 'none' yerine mantıklı bir minimum sınır */
+  max-width: 170px; /* İŞTE BURASI: Kutu 170px'e çarpınca sığmayan span'i alta atacak */
   border-right: 1px solid var(--border-color);
-  padding-right: 6px;
+  padding-right: 2px;
 }
 
 .floor-column:last-child {
@@ -199,11 +202,24 @@ body {
   border-radius: 4px;
 }
 
-.door-name {
+/* .door-name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+} */
+
+.door-name {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;       
+  column-gap: 4px;       
+  row-gap: 2px;          
+  padding-right: 0px;
+}
+
+.name-part {
+  white-space: nowrap;   /* Asla tireden kırılmaz, sadece span'ler arası boşluktan alt satıra geçer */
 }
 
 /* ==========================================================================
@@ -243,7 +259,7 @@ body {
 }
 
 .critical-item {
-  padding: 8px 10px;
+  padding: 4px 6px;
   font-size: 11px;
   font-weight: 600;
   border: 1px solid var(--border-dark);

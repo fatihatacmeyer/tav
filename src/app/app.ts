@@ -23,6 +23,7 @@ export interface Door {
   id: number;
   uniqueKey: string;
   name: string;
+  displayNameParts: string[];
   floor: string;
   status: 'closed' | 'opened' | 'leftOpen' | 'disconnected' | 'forced';
   isCritical: boolean;
@@ -280,7 +281,9 @@ export class App implements OnInit {
       new Map(apiPayload.map((item) => [`${item.TerminalID}-${item.Amac}`, item])).values(),
     );
 
-    const titleEntry = apiPayload.find((item) => Number(item.Amac) === 31 || Number(item.Amac) === 27);
+    const titleEntry = apiPayload.find(
+      (item) => Number(item.Amac) === 31 || Number(item.Amac) === 27,
+    );
     if (titleEntry) {
       this.sidebarTitle = titleEntry.GrupAdi;
     }
@@ -315,7 +318,10 @@ export class App implements OnInit {
         const statusNum = Number(apiItem.Durum);
         this.addLog(apiItem.TerminalAdi, actionText, statusNum);
 
-        if ((currentStatus === 'leftOpen' || currentStatus === 'forced') && (amac === 30 || amac === 26)) {
+        if (
+          (currentStatus === 'leftOpen' || currentStatus === 'forced') &&
+          (amac === 30 || amac === 26)
+        ) {
           // Eğer bu kapı (TerminalID) için bu döngüde henüz bildirim çıkarmadıysak çıkar
           if (!triggeredDoorIds.has(apiItem.TerminalID)) {
             this.showDoorAlert(apiItem.TerminalAdi, currentStatus);
@@ -331,6 +337,7 @@ export class App implements OnInit {
         id: apiItem.TerminalID,
         uniqueKey: uniqueKey,
         name: apiItem.TerminalAdi,
+        displayNameParts: apiItem.TerminalAdi.split(' '),
         floor: apiItem.GrupAdi || 'DİĞER',
         status: currentStatus,
         isCritical: amac === 31 || amac === 27,
@@ -393,7 +400,8 @@ export class App implements OnInit {
       {} as { [key: string]: Door[] },
     );
 
-    this.floors = Object.keys(this.groupedDoors).sort();
+    //this.floors = Object.keys(this.groupedDoors).sort();
+    this.floors = [...new Set(normalDoors.map((door) => door.floor))];
 
     // Status filter for critical panel
     this.criticalDoors = filteredDoors.filter(
