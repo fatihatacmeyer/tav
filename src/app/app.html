@@ -25,6 +25,11 @@
           }
         </select>
       </div>
+      <div class="door-status-filter" id="door-status-filter-main">
+        <button type="button" class="door-filter-all" [class.is-active]="mainDoorStatusFilter === 'all'" (click)="setMainDoorStatusFilter('all')">Tüm Kapılar</button>
+        <button type="button" class="door-filter-red" [class.is-active]="mainDoorStatusFilter === 'red'" (click)="setMainDoorStatusFilter('red')">Açık (Kırmızı)</button>
+        <button type="button" class="door-filter-green" [class.is-active]="mainDoorStatusFilter === 'green'" (click)="setMainDoorStatusFilter('green')">Kapalı (Yeşil)</button>
+      </div>
       <h2 class="section-title">1. Bölge Paneli (Tüm Kapılar)</h2>
       <div class="grid-container">
         @for (floor of floors; track floor) {
@@ -59,6 +64,11 @@
 
     <div class="sidebar">
       <div class="section part-2">
+        <div class="door-status-filter" id="door-status-filter-critical">
+          <button type="button" class="door-filter-all" [class.is-active]="criticalDoorStatusFilter === 'all'" (click)="setCriticalStatusFilter('all')">Tüm Kapılar</button>
+          <button type="button" class="door-filter-red" [class.is-active]="criticalDoorStatusFilter === 'red'" (click)="setCriticalStatusFilter('red')">Açık (Kırmızı)</button>
+          <button type="button" class="door-filter-green" [class.is-active]="criticalDoorStatusFilter === 'green'" (click)="setCriticalStatusFilter('green')">Kapalı (Yeşil)</button>
+        </div>
         <h2 class="section-title">2. {{ sidebarTitle }}</h2>
 
         <div class="critical-grid">

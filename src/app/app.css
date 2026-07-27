@@ -217,11 +217,23 @@ body {
 }
 
 .part-2 {
-  flex: 1;
+  flex: 2;
 }
 
 .part-3 {
-  flex: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.part-3 .log-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.part-3 .btn-history {
+  flex-shrink: 0;
 }
 
 .critical-grid {
@@ -461,6 +473,50 @@ body {
   align-self: center;
   white-space: nowrap;
   font-weight: bold;
+}
+
+/* ==========================================================================
+   10B. KAPI DURUM FILTRE BUTONLARI (STATUS FILTER)
+   ========================================================================== */
+.door-status-filter {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 10px;
+  flex-wrap: wrap;
+}
+
+.door-status-filter button {
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  transition: opacity 0.2s, box-shadow 0.2s;
+}
+
+.door-status-filter button:hover {
+  opacity: 0.9;
+}
+
+.door-status-filter button.is-active {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--text-accent);
+}
+
+.door-filter-all {
+  background: #555;
+  border-color: #777;
+}
+
+.door-filter-red {
+  background: #dc3545;
+  border-color: #f5c6cb;
+}
+
+.door-filter-green {
+  background: #28a745;
+  border-color: #c3e6cb;
 }
 
 .pagination {

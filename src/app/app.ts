@@ -3,6 +3,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideUnplug, LucideTriangleAlert } from '@lucide/angular';
 import { DoorService } from './core/services/door';
+import { DUMMY_DOORS } from './core/data/dummy-doors';
 
 export interface ApiDoor {
   TerminalID: number;
@@ -71,6 +72,8 @@ export class App implements OnInit {
   historySearchTerm: string = '';
   historyGroupFilter: string = '';
   isLightMode: boolean = false;
+  mainDoorStatusFilter: 'all' | 'red' | 'green' = 'all';
+  criticalDoorStatusFilter: 'all' | 'red' | 'green' = 'all';
   availableGroups: string[] = [];
   availableHistoryGroups: string[] = [];
 
@@ -170,11 +173,22 @@ export class App implements OnInit {
 
   async refreshData() {
     try {
+      const config = await this.doorService.loadConfig();
+      if (config.useDummyData) {
+        this.addLog('Sistem', 'Dummy veri modu aktif, demo veri yükleniyor...');
+        this.mapAndOrganizeData(DUMMY_DOORS);
+        this.cdr.detectChanges();
+        return;
+      }
+
       const apiData = await this.doorService.fetchDoorsFromApi();
       this.mapAndOrganizeData(apiData);
       this.cdr.detectChanges(); // Değişiklikleri hemen yansıt
     } catch (error) {
       console.error('API Hatası:', error);
+      this.addLog('Sistem', 'API bağlantısı kurulamadı, demo veri yükleniyor...');
+      this.mapAndOrganizeData(DUMMY_DOORS);
+      this.cdr.detectChanges();
     }
   }
 
@@ -266,7 +280,7 @@ export class App implements OnInit {
       new Map(apiPayload.map((item) => [`${item.TerminalID}-${item.Amac}`, item])).values(),
     );
 
-    const titleEntry = apiPayload.find((item) => Number(item.Amac) === 31);
+    const titleEntry = apiPayload.find((item) => Number(item.Amac) === 31 || Number(item.Amac) === 27);
     if (titleEntry) {
       this.sidebarTitle = titleEntry.GrupAdi;
     }
@@ -301,7 +315,7 @@ export class App implements OnInit {
         const statusNum = Number(apiItem.Durum);
         this.addLog(apiItem.TerminalAdi, actionText, statusNum);
 
-        if ((currentStatus === 'leftOpen' || currentStatus === 'forced') && amac === 30) {
+        if ((currentStatus === 'leftOpen' || currentStatus === 'forced') && (amac === 30 || amac === 26)) {
           // Eğer bu kapı (TerminalID) için bu döngüde henüz bildirim çıkarmadıysak çıkar
           if (!triggeredDoorIds.has(apiItem.TerminalID)) {
             this.showDoorAlert(apiItem.TerminalAdi, currentStatus);
@@ -319,8 +333,8 @@ export class App implements OnInit {
         name: apiItem.TerminalAdi,
         floor: apiItem.GrupAdi || 'DİĞER',
         status: currentStatus,
-        isCritical: amac === 31,
-        isNormal: amac === 30,
+        isCritical: amac === 31 || amac === 27,
+        isNormal: amac === 30 || amac === 26,
         lastUpdate: apiItem.SonGuncelleme ? new Date(apiItem.SonGuncelleme) : new Date(),
         eventCode: apiItem.OlayKodu || '',
       };
@@ -362,7 +376,10 @@ export class App implements OnInit {
       });
     }
 
-    const normalDoors = filteredDoors.filter((door) => door.isNormal);
+    // Status filter for main panel (normal doors)
+    const normalDoors = filteredDoors.filter(
+      (door) => door.isNormal && this.matchesStatusFilter(door, this.mainDoorStatusFilter),
+    );
 
     this.groupedDoors = normalDoors.reduce(
       (acc, door) => {
@@ -377,7 +394,29 @@ export class App implements OnInit {
     );
 
     this.floors = Object.keys(this.groupedDoors).sort();
-    this.criticalDoors = filteredDoors.filter((door) => door.isCritical);
+
+    // Status filter for critical panel
+    this.criticalDoors = filteredDoors.filter(
+      (door) => door.isCritical && this.matchesStatusFilter(door, this.criticalDoorStatusFilter),
+    );
+  }
+
+  matchesStatusFilter(door: Door, filter: 'all' | 'red' | 'green'): boolean {
+    if (filter === 'all') return true;
+    if (filter === 'red') return door.status === 'leftOpen' || door.status === 'forced';
+    return door.status === 'closed';
+  }
+
+  setMainDoorStatusFilter(filter: 'all' | 'red' | 'green'): void {
+    this.mainDoorStatusFilter = filter;
+    this.organizeData();
+    this.cdr.detectChanges();
+  }
+
+  setCriticalStatusFilter(filter: 'all' | 'red' | 'green'): void {
+    this.criticalDoorStatusFilter = filter;
+    this.organizeData();
+    this.cdr.detectChanges();
   }
 
   onFilterChange() {

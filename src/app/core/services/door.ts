@@ -9,6 +9,7 @@ export interface AppConfig {
   user: string;
   password: string;
   pageSize: number;
+  useDummyData: boolean;
 }
 
 @Injectable({
